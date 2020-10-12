@@ -7,7 +7,8 @@
 #include <stdlib.h>
 #include<ctype.h>
 #define DEFAULT_LEN 100
- 
+#define VERSION "1.0.0"
+
 typedef struct str
 {
     char *str;
@@ -146,6 +147,10 @@ void error_version(){
     printf("if you use -V, you cannot use it with other options.\n");
     printf("(-V または--versionを使用する場合、ほかのオプションと併用できません。)\n");
 }
+void show_version(){
+    printf(VERSION);
+    printf("\n");
+}
 
 /**/
 int strcasecmp(const char *s1, const char *s2)
@@ -159,7 +164,29 @@ int strcasecmp(const char *s1, const char *s2)
    }
    return 1;
  }
- 
+ void hide_anime(){
+    int s,i,j;
+    for(s=0;s<3;s++){
+        for(i=0;i<=3;i++){
+            printf("\r〆(.. )受験勉強中 ");
+            for(j=0;j<i;j++){
+                printf("ｶｷ ");
+            }
+            for(j=i;j<=3;j++){
+                printf("   ");
+            }
+            
+            fflush(stdout);
+            sleep(1);
+        }
+    }
+    printf("\r| 合格発表 |関大落ち          ");
+    printf("            ");
+    printf("uniq version");
+    printf(VERSION);
+    printf("     https://idichi.tk");
+    printf("\n");
+ }
  
 int main(int argc,char** argv)
 {
@@ -174,8 +201,9 @@ int main(int argc,char** argv)
     int c_option=0;
     int i_option=0;
     int v_option=0;
+    int a_option=0;
     
-    /*read*/
+    /*for option read*/
     int ch;
     
     char *tmp;
@@ -194,7 +222,7 @@ int main(int argc,char** argv)
     
     /*option analy*/
     /*printf("%d",argc);*/
-    while((ch=getopt(argc,argv,"ciuV"))!=-1){
+    while((ch=getopt(argc,argv,"ciuVA"))!=-1){
 /*        printf("%c",ch);*/
         switch (ch)
         {
@@ -210,15 +238,28 @@ int main(int argc,char** argv)
         case 'V':
             v_option=1;
             break;
+        case 'A':
+            a_option=1;
+            break;
         default:
             usage();
             exit(EXIT_SUCCESS);
             break;
         }
     }
+    if(a_option){
+        if((c_option+i_option+u_option+v_option)==0){
+            hide_anime();
+            exit(EXIT_SUCCESS);
+        }
+        else{
+            usage();
+            exit(EXIT_SUCCESS);
+        }
+    }
     /*-vチェック*/
     if(v_option&&(c_option+i_option+u_option)==0){
-        printf("0.0.1\n");
+        show_version();
         exit(EXIT_SUCCESS);
     }else if(v_option&&(c_option+i_option+u_option)>0){
         error_version();
