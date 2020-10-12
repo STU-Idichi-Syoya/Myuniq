@@ -180,12 +180,10 @@ int main(int argc,char** argv)
     
     char *tmp;
 
-
-
+  
     
     
-    
-    /*functions*/
+    /*functions pointer*/
     void(*OUTPUT_MODE_FUNC)(int,String*, int);
     int (*COMP_STR_FUNC)(const char*,const char *);
     
