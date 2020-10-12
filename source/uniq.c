@@ -5,14 +5,14 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <stdlib.h>
-
+#include<ctype.h>
 #define DEFAULT_LEN 100
  
-typedef struct
+typedef struct str
 {
     char *str;
     int now_str_arr_len;
-    int end_point; // \0 の添え字番号を示す。
+    int end_point; /* \0 の添え字番号を示す。*/
 } String;
 
 void String_init(String *s)
@@ -33,10 +33,10 @@ void String_add_char(String *s, int a)
         tmp = realloc(s->str, s->now_str_arr_len*2);
         if (tmp != NULL)
         {
-            //pass
+            /*pass*/
             s->str = tmp;
             s->now_str_arr_len *= 2;
-            // printf("called calloc str_arr_len-->%d\n", s->now_str_arr_len);
+            /* printf("called calloc str_arr_len-->%d\n", s->now_str_arr_len);*/
         }
         else
         {
@@ -81,7 +81,7 @@ void String_delite(String *s)
 */
 int readline(String *s, FILE *fp,int *flg)
 {
-    int c, count = 0;
+    int c;
     *flg=0;
     String_recycle(s);
     c = getc(fp);
@@ -89,7 +89,7 @@ int readline(String *s, FILE *fp,int *flg)
     {
         if (c == '\n')
         {
-            // String_add_char(s, '\n');
+            /* String_add_char(s, '\n');*/
             if(*flg!=1)
                 *flg=2;
             
@@ -125,7 +125,7 @@ void print_Default(int count, String *s, int u_option)
 {
     if (u_option == 1 && count > 1)
         return;
-    // last=String_get_last(s);
+    
     putString(s);
 }
 /*u_option==1は重複する行を除く*/
@@ -144,30 +144,56 @@ void usage(){
 }
 void error_version(){
     printf("if you use -V, you cannot use it with other options.\n");
-    printf("(-V または--versionを使⽤する場合、ほかのオプションと併⽤できません。)\n");
+    printf("(-V または--versionを使用する場合、ほかのオプションと併用できません。)\n");
 }
 
-void main(int argc,char** argv)
+/**/
+int strcasecmp(const char *s1, const char *s2)
+ {
+   while (toupper(*s1) == toupper(*s2))
+   {
+     if (*s1 == 0)
+       return 0;
+     s1++;
+     s2++;
+   }
+   return 1;
+ }
+ 
+ 
+int main(int argc,char** argv)
 {
     FILE *fp;
     String s1, s2;
     int b_flg=-1;
     int file_not_eof = 1, file_not_eof2 = 1,
-        count = 1, tmpint,flg;
-
-    char *tmp;
-    String_init(&s1);
-    String_init(&s2);
-
-
+        count = 1, flg;
+    
     /*options*/
     int u_option=0;
     int c_option=0;
     int i_option=0;
     int v_option=0;
-
+    
+    /*read*/
     int ch;
+    
+    char *tmp;
 
+
+
+    
+    
+    
+    /*functions*/
+    void(*OUTPUT_MODE_FUNC)(int,String*, int);
+    int (*COMP_STR_FUNC)(const char*,const char *);
+    
+    
+    /*String init*/
+    String_init(&s1);
+    String_init(&s2);
+    
     /*option analy*/
     /*printf("%d",argc);*/
     while((ch=getopt(argc,argv,"ciuV"))!=-1){
@@ -227,9 +253,9 @@ void main(int argc,char** argv)
 
 
     /*output func*/
-    void(*OUTPUT_MODE_FUNC)(int count, String *s, int u_option)= !c_option ? print_Default : print_CountMode;
+    OUTPUT_MODE_FUNC= !c_option ? print_Default : print_CountMode;
     /*compare func*/
-    int (*COMP_STR_FUNC)(const char*s,const char *s1)= !i_option ? strcmp:strcasecmp;
+    COMP_STR_FUNC= !i_option ? strcmp:strcasecmp;
 
     file_not_eof=readline(&s1, fp,&flg);
     if (file_not_eof!=EOF)
@@ -244,7 +270,7 @@ void main(int argc,char** argv)
                 count++;
             } while (file_not_eof2 != EOF && (COMP_STR_FUNC(s1.str, s2.str) == 0 && b_flg==flg));
 
-            // printf("count=%d %s",count,s1.str);
+            
 
             if (file_not_eof2 != EOF)
             {
@@ -257,12 +283,10 @@ void main(int argc,char** argv)
             else
             {
                 /*<string><\n>EOFの場合、s2は空要素である。なので、空要素のときは表示しない*/
-                // if(!String_isEmpty(&s2))
-                // printf("count=%d %s",1,s2.str);
-
-                if ((COMP_STR_FUNC(s1.str, s2.str) == 0&& b_flg==flg))
+                
+                if ((COMP_STR_FUNC(s1.str, s2.str) == 0))
                 {
-                    if(flg==2)
+                    if(flg!=0)
                         count++;
                     OUTPUT_MODE_FUNC(count, &s1, u_option);
                 }
@@ -286,6 +310,6 @@ void main(int argc,char** argv)
     }
     String_delite(&s1);
     String_delite(&s2);
-    close(fp);
+    fclose(fp);
     exit(EXIT_SUCCESS);
 }
