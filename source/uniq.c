@@ -134,7 +134,7 @@ void print_CountMode(int count, String *s, int u_option)
     if (u_option == 1 && count > 1)
         return;
 
-    printf("      %d ", count);
+    printf("%7d ", count);
     putString(s);
 }
 
