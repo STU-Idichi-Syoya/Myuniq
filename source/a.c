@@ -122,6 +122,21 @@ void print_CountMode(int count, String *s, int u_option)
 
 void main()
 {
-    char *s = "ab\0de";
-    printf("%s", s);
+    for(int s=0;s<5;s++){
+        for(int i=0;i<=3;i++){
+            printf("\r(｡-ω-)");
+            for(int j=0;j<i;j++){
+                printf("z");
+            }
+            for(int j=i;j<=3;j++){
+                printf(" ");
+            }
+            printf(" ");
+            printf("uniq version");
+            printf(__VERSION__);
+            fflush(stdout);
+            sleep(1);
+        }
+    }
+    printf("\n");
 }
