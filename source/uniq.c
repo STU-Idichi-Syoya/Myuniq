@@ -54,19 +54,7 @@ void String_add_char(String *s, int a)
     s->end_point++;
     s->str[s->end_point] = '\0';
 }
-/*空要素の場合、\0 を返す*/
-char String_get_last(String *s)
-{
-    if (String_isEmpty(s))
-    {
-        return '\0';
-    }
-    else
-    {
-        printf("last-->%c kaigyou?-->%d\n", s->str[s->end_point - 1], s->str[s->end_point - 1] == '\n');
-        return s->str[s->end_point - 1];
-    }
-}
+
 /*String を初期化し、次回も利用できるようにする*/
 void String_recycle(String *s)
 {
@@ -149,8 +137,8 @@ void usage()
 }
 void error_version()
 {
-    printf("if you use -V, you cannot use it with other options.\n");
-    printf("(-V または--versionを使用する場合、ほかのオプションと併用できません。)\n");
+    fprintf(stderr,"if you use -V, you cannot use it with other options.\n");
+    fprintf(stderr,"(-V または--versionを使用する場合、ほかのオプションと併用できません。)\n");
 }
 void show_version()
 {
