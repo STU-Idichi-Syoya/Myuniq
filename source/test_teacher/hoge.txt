@@ -1,6 +1,6 @@
 A
-a
-b
+A
 B
+B
+b
 C
-c

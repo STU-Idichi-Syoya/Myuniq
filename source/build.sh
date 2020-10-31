@@ -1,1 +1,1 @@
-cc -o uuniq uniq.c
+cc -o uniq uniq.c

@@ -1,142 +1,132 @@
 #include <stdio.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
 #include <stdlib.h>
+#include <getopt.h>
+#include <string.h>
 
-#define DEFAULT_LEN 100
+static void usagee(void);
+static void scanfilesa(int argc, char *argv[]);
+static void expands(FILE *from);
 
-typedef struct
-{
-    char *str;
-    int now_str_arr_len;
-    int end_point; // \0 の添え字番号を示す。
-} String;
+int TAB = 8;
+int rval = EXIT_SUCCESS;
+int iflag = 0, tflag = 0;
 
-void String_init(String *s)
+int main(int argc, char *argv[])
 {
-    s->str = (char *)malloc(sizeof(char) * DEFAULT_LEN);
-    s->now_str_arr_len = DEFAULT_LEN;
-    s->end_point = 0;
-}
-int String_isEmpty(String *s)
-{
-    return s->str[0] == '\0';
-}
-void String_add_char(String *s, int a)
-{
-    char *tmp;
-    if (s->end_point + 2 >= s->now_str_arr_len)
+    char ch;
+
+    while ((ch = getopt(argc, argv, "i:t:")) != -1)
     {
-        tmp = realloc(s->str, s->now_str_arr_len + 50);
-        if (tmp != NULL)
+        switch (ch)
         {
-            //pass
-            s->str = tmp;
-            s->now_str_arr_len += 50;
-            // printf("called calloc str_arr_len-->%d\n", s->now_str_arr_len);
+        case 'i':
+            iflag = 1;
+            break;
+        case 't':
+            TAB = atoi(optarg);
+            tflag = 1;
+            break;
+        default:
+            usagee();
+            break;
+        }
+    }
+
+    argv += optind;
+    argc -= optind;
+
+    scanfilesa(argc, argv);
+    exit(rval);
+}
+
+static void usagee(void)
+{
+    (void)fprintf(stderr, "expand --help for more information.\n");
+    exit(EXIT_FAILURE);
+}
+
+static void scanfilesa(int argc, char *argv[])
+{
+    int i;
+    int iflag, tflag, rval;
+
+    if (argc == 0)
+    {
+        if (iflag)
+        {
+            expands(stdin);
+        }
+        else if (tflag)
+        {
+            expands(stdin);
         }
         else
         {
-            /*error*/
-            /*fprintf("\n");*/
+            expands(stdin);
         }
+        return;
     }
 
-    s->str[++s->end_point] = a;
-    s->str[s->end_point] = '\0';
-}
-/*空要素の場合、\0 を返す*/
-char String_get_last(String *s)
-{
-    if (String_isEmpty(s))
+    for (i = 0; i < argc; i++)
     {
-        return '\0';
-    }
-    else
-    {
-        return s->str[s->end_point - 1];
-    }
-}
-/*String を初期化し、次回も利用できるようにする*/
-void String_recycle(String *s)
-{
-    s->end_point = 0;
-    s->str[0] = '\0';
-}
-void String_delite(String *s)
-{
-    free(s->str);
-}
-/* stringを初期化してから、
-*EOFの場合EOFを返し、それ以外の場合、1を返す。 
-* 注意！ \n 一文字の場合、String s.strは[\n\0]となる。
-*/
-int readline(String *s, FILE *fp)
-{
-    int c, count = 0;
-    String_recycle(s);
-    c = getc(fp);
-    while (c != EOF)
-    {
-        if (c == '\n')
+        char *path = argv[i];
+        if (path == NULL)
         {
-            String_add_char(s, '\n');
-            return 1;
+            printf("No such file or directory\n");
         }
-        String_add_char(s, c);
-        c = getc(fp);
+        else if (strcmp(path, "-") == 0)
+        {
+            expands(stdin);
+        }
+        else
+        {
+            FILE *fp = fopen(path, "r");
+            if (fp == NULL)
+            {
+                (void)fprintf(stderr, "%sがありません\n", path);
+                rval = EXIT_FAILURE;
+            }
+            else if (iflag)
+            {
+                expands(fp);
+                (void)fclose(fp);
+            }
+            else if (tflag)
+            {
+                expands(fp);
+                (void)fclose(fp);
+            }
+            else
+            {
+                expands(fp);
+                (void)fclose(fp);
+            }
+        }
     }
-    return EOF;
 }
 
-/*u_option==1は重複する行を除く*/
-void print_Default(int count, String *s, int u_option)
+static void expands(FILE *from)
 {
-    char last = String_get_last(s);
-
-    if (u_option == 1 && count != 1)
-        return;
-
-    if (last != '\0' && last == '\n')
-        printf("%s", s->str);
-    else
+    int rest = TAB;
+    int ch;
+    /*ファイルの終端(EOF)になるまで続ける*/
+    while ((ch = fgetc(from)) != EOF)
     {
-        printf("%s\n", s->str);
-    }
-}
-/*u_option==1は重複する行を除く*/
-void print_CountMode(int count, String *s, int u_option)
-{
-    char last = String_get_last(s);
 
-    if (u_option == 1 && count != 1)
-        return;
-    if (last != '\0' && last == '\n')
-        printf("      %d %s", count, s->str);
-    else
-        printf("      %d %s\n", count, s->str);
-}
-
-void main()
-{
-    for(int s=0;s<5;s++){
-        for(int i=0;i<=3;i++){
-            printf("\r(｡-ω-)");
-            for(int j=0;j<i;j++){
-                printf("z");
-            }
-            for(int j=i;j<=3;j++){
+        if (ch == '\t')
+        { /*タブが使われたとき、rest(tab)が0になるまで空白入れる*/
+            for(int i=0;i<rest;i++)
                 printf(" ");
-            }
-            printf(" ");
-            printf("uniq version");
-            printf(__VERSION__);
-            fflush(stdout);
-            sleep(1);
+        }
+        else if (ch == '\n')
+        { /*改行が入力されたとき改行する*/
+            printf("\n");
+        }
+        else
+        { /*それ以外は普通に入力*/
+            printf("%c", ch);
         }
     }
     printf("\n");
 }
+
